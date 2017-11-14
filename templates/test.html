@@ -1,0 +1,209 @@
+<!Doctype html>
+
+<html lang="es-MX">
+<head>
+
+	<script type="text/javascript" src="http://pygenetics.paridin.com/media/js/jquery.1.4.4.js"></script>
+	<script type="text/javascript" >
+        var items=new Array();
+        var sheet=new Array();
+        var sheet_number=0;
+		$(function(){
+				$("#listar").click(function(){
+                    successHandler();
+				});
+
+                $('#search').keypress(function(event){
+                    if(event.which == '13'){
+                        search_cnf($(this).val());
+                    }
+                });
+		});
+
+
+	function successHandler(){
+      $.getJSON('/list_cnf/',function(data){
+        $.each(data, function(key, name){
+           items.push('<li><input type="radio" id="'+name+'" name="cnffiles" value="'+name+'" onclick="file_selected(\''+name+'\')" style="cursor: pointer" /> <label style="cursor: pointer" for="'+name+'">'+name+'</label></li>');
+        });
+        $("#listar").hide('slow');
+        // list 10 to 10
+        cnfs_list(10);
+        $("#pages").show('slow');
+        // GET NAME FILE UPLOAD
+        var name;
+        name=get_name($('#cnffile').val())
+         search_cnf(name);
+        //$("#serching").show('slow');
+     });
+  	}
+
+    function cnfs_list(id){
+    $('#dir_cnf').append('<ul id="layer_'+sheet_number+'">'+items[0]+'</ul>');
+        for (i=1;i<items.length;i++){
+            if(i%10 == 0){
+            sheet_number++;
+                $('#dir_cnf').append('<ul id="layer_'+sheet_number+'" style="display:none">'+items[i]+'</ul>');
+            }else{
+                $('#layer_'+sheet_number).append(items[i]);
+            }
+        }
+        $('#pages').append('<ul id="page"></ul>');
+        for(i=0;i<=sheet_number;i++){
+            $('#page').append('<li onclick="sheets('+i+')" style="cursor:pointer">'+i+'</li>');
+        }
+    }
+
+    function sheets(index){
+        for(i=0;i<=sheet_number;i++){
+            if(index==i){
+             $('#layer_'+i).show('slow');
+            }else{
+             $('#layer_'+i).hide('fast');
+            }
+        }
+
+    }
+
+
+    function search_cnf(val){
+        $("input:radio").each(function(){
+            if(val==$(this).val()){
+                $(this).attr('checked','checked');
+                file_selected($(this).val());
+            }
+
+        });
+    }
+
+    function file_selected(val){
+        $('#selected').empty();
+        $('#selected').append(val);
+    }
+
+    function get_name(string){
+        name=Array();
+        name=string.split('/');
+        return name[name.length-1];
+    }
+
+	</script>
+    <style>
+
+        #dir_cnf ul{
+            width: 660px;
+            background-color:#c0c0c0;
+            overflow:hidden;
+            padding-top: 15px;
+            padding-left:10px;
+        }
+        #dir_cnf ul li{
+            float:left;
+            list-style:none;
+            margin: 0 0 30px 0;
+            width: 130px;
+        }
+         #dir_cnf > ul > li:nth-child(5n) {
+             margin-right:0
+         }
+
+        #pages ul{
+            list-style: none;
+        }
+        #pages ul li{
+            padding-left: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            float: left;
+        }
+        .page_label{
+            font-weight: bold;
+            font-size: 12px;
+            float:left;padding: 0;
+            margin: 0;
+        }
+    </style>
+
+</head>
+
+<body>
+<div id="serching" style="display:none">
+    <input type="text" id="search" name="search" />
+</div>
+
+<p id="listar" style="cursor: pointer">
+Cargar archivos
+</p>
+<p id="selected"></p>
+<div id="dir_cnf" ></div>
+<div id="pages" style="display: none">
+    <label class="page_label">Pages:</label>
+</div>
+
+
+
+                     <section id="load_file" class="row">
+                        <form action="/upload/" name="form_upload" id="form_upload" class="row" method="POST" enctype="multipart/form-data">{% csrf_token %}
+                            <input type="file" name="cnffile" id="cnffile" class="file input_box"   />
+                            <input id="up" class="input_box finger" type="submit" style="font-size:20px; padding:10px;" value="Upload" />
+                        </form>
+                            <div><span id="upload-progress-bar" style="display: none;"><img src="/media/images/loader.gif" /></span></div>
+                      </section>
+
+
+                <section id="run_code" class='row'>
+                          <form action="/execute/running/" name="form_run" id="form_run" class="row" method="POST" enctype="multipart/form-data" >{% csrf_token %}
+                                <div id="dir_cnf" ></div>
+                                <div id="pages" style="display: none">
+                                    <label class="page_label">Paginas</label>
+                                </div>
+                                <br />
+                                <div id="file_selected">
+                                <label>Archivo seleccionado</label>
+                                  <ul>
+                                  <input type="radio" id="a2.cnf" name="cnffiles" value="a2.cnf" style="cursor: pointer">a2.cnf
+                                  </ul>
+                                <label id="selected"></label>
+                                </div>
+                                <br />
+                                <label for="mutation">Mutacion</label>
+                                <input type="text" id="mutation" name="mutation" maxlength="3" size="3" class="input_box" /> %
+                                <div id="mstatus" class="error" style="display:none;"></div>
+
+                                <label for="crossover" style="padding-left:20px">crossover</label>
+                                <input type="text" id="crossover" name="crossover" maxlength="3" size="3" class="input_box" /> %
+                                <div id="cstatus" class="error" style="display:none"></div>
+                                <br />
+                                <label for="size_population">tamaño poblacion</label>
+                                <select id="size_population" name="size_population" class="input_box">
+                                    <option value="half">Mitad</option>
+                                    <option value="normal" selected="true">Normal</option>
+                                    <option value="double">Doble</option>
+                                </select>
+                                <br />
+                                <label for="generation">Generaciones</label>
+                                <input type="text" id="generation" name="generation" maxlength="5" size="6" class="input_box" />
+                                <div id="gstatus" class="error" style="display:none" ></div>
+                                <br />
+                                <label for="tuning">Sintonización</label>
+                                <select id="tuning" name='tuning' class="input_box">
+                                    <option value="fail">seleccionar</option>
+                                    <option value="mut_and_cross">mutacion y cruzamient</option>
+                                    <option value="size_of_population">tamaño de poblacion</option>
+                                    <option value="size_of_generation">tamaño de generacion</option>
+                                </select>
+                                <br />
+								                <div id="frmstatus" class="error" style="display:none" ></div>
+                                <input type="submit" id="sumbit_run" value="Enviar trabajo" class="input_box finger" style="font-size:20px; padding:10px;" />
+                            </form>
+                            <div><span id="run-progress-bar" style="display: none;"><img src="/media/images/loader.gif" /></span></div>
+                    </section>
+
+  <form action="/preview_cnf/" method="post">
+       <input type="text" name="id" value="a2.cnf" id="test_cnf_prev" />
+        <input type="submit" value="test" />
+  <form>
+
+</body>
+</html>
+

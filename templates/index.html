@@ -1,0 +1,704 @@
+<!DOCTYPE HTML>
+<html languaje="es-MX">
+  <head>
+    <title>AG Solve SAT Problems</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="pyGenetics icon" HREF="/media/images/pyg.ico" />
+    <!--[if IE]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+    <script type="text/javascript" src="/media/js/jquery.1.4.4.js"></script>
+    <script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>
+    <script type="text/javascript" src="/media/js/jquery.form.js"></script>
+    <script type="text/javascript" src="/media/fancybox/jquery.easing-1.3.pack.js"></script>
+    <script type="text/javascript" src="/media/fancybox/jquery.mousewheel-3.0.4.pack.js"></script>
+    <script type="text/javascript" src="/media/fancybox/jquery.fancybox-1.3.4.js"></script>
+    <script>
+        var ERROR_INT="{{ ERROR_INT }}";
+        var ERROR_SIZE="{{ ERROR_SIZE }}";
+        var ERROR_NOT_CNF="{{ ERROR_NOT_CNF }}";
+        var ERROR_EMPTY="{{ ERROR_EMPTY }}";
+        var items=new Array();
+        var sheet=new Array();
+        var sheet_number=0;
+		var time_average=0;
+		var fitness_average=0;
+		var number_test=0;
+
+        $(function(){
+
+             $('#r').click(function(){
+                $('#mac').show('slow');
+                $('#sp').show('slow');
+                $('#sg').show('slow');
+           });
+           $('#r').dblclick(function(){
+               $('#mac').hide('slow');
+               $('#sp').hide('slow');
+               $('#sg').hide('slow');
+           });
+
+            $("#generation").change(function(){
+                var regExp = /^[0-9]*$/;
+                $("#gstatus").empty();
+                if(!regExp.test($(this).val())){
+                    $("#gstatus").append("<p><strong>"+ $(this).val() +"</strong> "+ERROR_INT+"</p>");
+                    $("#gstatus").fadeOut(1500).fadeIn(1500).fadeOut(1100).fadeIn(1100).fadeOut(3000);
+                    $(this).val("");
+                }
+            });
+            $("#mutation").change(function(){
+                var regExp = /^[0-9]*$/;
+                $("#mstatus").empty();
+                if(!regExp.test($(this).val())){
+                    $("#mstatus").append("<p><strong>"+ $(this).val() +"</strong> "+ERROR_INT+"</p>");
+                    $("#mstatus").fadeOut(1500).fadeIn(1500).fadeOut(1100).fadeIn(1100).fadeOut(3000);
+                    $(this).val("");
+
+                }else if (parseInt($(this).val())>100){
+                    $("#mstatus").append("<p><strong>"+ $(this).val() +"</strong> "+ERROR_SIZE+"</p>");
+                    $("#mstatus").fadeOut(1500).fadeIn(1500).fadeOut(1100).fadeIn(1100).fadeOut(3000);
+                    $(this).val("");
+                }else{
+                    $("#crossover").val(100-$(this).val());
+                }
+            });
+
+            $("#crossover").change(function(){
+                var regExp = /^[0-9]*$/;
+                $("#cstatus").empty();
+                if(!regExp.test($(this).val())){
+                    $("#cstatus").append("<p><strong>"+ $(this).val() +"</strong> "+ERROR_INT+"</p>");
+                    $("#cstatus").fadeOut(1500).fadeIn(1500).fadeOut(1100).fadeIn(1100).fadeOut(3000);
+                    $(this).val("");
+                }else if (parseInt($(this).val())>100){
+                    $("#cstatus").append("<p><strong>"+ $(this).val() +"</strong> "+ERROR_SIZE+"</p>");
+                    $("#cstatus").fadeOut(1500).fadeIn(1500).fadeOut(1100).fadeIn(1100).fadeOut(3000);
+                    $(this).val("");
+                }else{
+                    $("#mutation").val(100-$(this).val());
+                }
+            });
+
+           $("#tuning").change(function(){
+               $("#tuning option:selected").each(function(){
+                    if($(this).val() == 'mut_and_cross'){
+                        $("#size_population").attr("disabled",true);
+                        $("#generation").attr("disabled",true);
+                        $("#mutation").removeAttr("disabled");
+                        $("#crossover").removeAttr("disabled");
+                    }
+                    else if ($(this).val() == 'size_of_population'){
+                        $("#mutation").attr("disabled",true);
+                        $("#crossover").attr("disabled",true);
+                        $("#generation").attr("disabled",true);
+                        $("#size_population").removeAttr("disabled");
+                    }
+                    else if ($(this).val() == 'size_of_generation'){
+                        $("#mutation").attr("disabled",true);
+                        $("#crossover").attr("disabled",true);
+                        $("#size_population").attr("disabled",true);
+                        $("#generation").removeAttr("disabled");
+                    }
+                    else {
+                        $("#mutation").removeAttr("disabled");
+                        $("#crossover").removeAttr("disabled");
+                        $("#size_population").removeAttr("disabled");
+                        $("#generation").removeAttr("disabled");
+                    }
+               });
+           });
+         $("#give_comment").click(function (){
+                $("#comments").show("slow");
+         });
+         $("#listar").click(function(){
+                successHandler();
+         });
+
+         $("#upload").click(function(){
+              $("#cnffile").trigger("click");
+         });
+
+   // FILE UPLOAD
+        var options = {
+            dataType: "xml",
+            url: "/upload/",
+            beforeSubmit: beforeSubmitHandler,
+            success:successHandler
+        };
+        $("#form_upload").ajaxForm(options);
+
+		var options_run = {
+			datatype: "xml",
+			url: "/execute/run/",
+			beforeSubmit: beforeRun,
+			success: successRun
+		};
+
+		$("#sumbit_run").click(function(){
+			number_test=0;
+			time_average=0;
+			fitness_average=0;
+			var datax = 'mutation='+$('#mutation').val()+'&crossover='+$('#crossover').val()+'&generation='+$('#generation').val()+'&size_population='+$('#size_population').val()+'&tuning='+$('#tuning').val()+'&cnffiles='+$(':radio:checked').val();
+			$('#run-progress-bar').show('slow');
+			for (var i=0; i<$('#number_test').val(); i++){
+				$.ajax({
+		          	  type: 'POST',
+			          dataType: "json",
+			          url: '/execute/run/',
+			          aync:true,
+			          data:datax,
+			          beforeSend: beforeRun,
+			          success: successR,
+			          error: function(data){
+			            alert('Error' );
+		              }
+		          });
+		 	}
+	});
+
+/*
+		var options_comment = {
+			datatype: "xml",
+			url: "/comment/",
+			beforeSubmit: beforeComment,
+			success: succesComent
+		};
+		$("#form_comment").ajaxForm(options_comment);
+*/
+
+//END DOCUMENT LOAD
+  });
+
+  function successR(data){
+   	$.each(data,function(k,v){
+		if (k=='time'){time_average+=v;} else
+		if (k=='fitness'){fitness_average+=v;}
+		if(k=='id'){number_test+=v}
+	});
+	$('#tests').text('');
+	$('#tests').text(' '+number_test+'/'+$('#number_test').val());
+	if (number_test == $('#number_test').val()){
+	 	$('#run-progress-bar').hide('slow');
+	 	// ajax save averages
+		$.ajax({
+			type: 'POST',
+			dataType: 'text',
+			url: '/execute/save_averages/',
+			data: 'name_file='+$(':radio:checked').val()+'&time_average='+time_average/number_test+'&fitness_average='+fitness_average/number_test,
+			beforeSend:function(){alert('try to insert into averages');},
+			success: function(data){ alert('Insertado');},
+			error: function(data){alert('Error')}
+		});
+	$('#tests').text('');
+	}
+  }
+
+  function renderGraph(id){
+        if ( id == 'mac' ){
+             g=getGraph('result_mac');
+             $('#graph_result').append('<a target="__blank" href="'+g[0]+'" pxm="gal" rel="time: '+g[2]+'" ><img id="graph" src="'+g[0]+'" title=" time: '+g[2]+'" width="60" height="60" > </a><a target="__blank" href="'+g[1]+'" rel="fitness: '+g[3]+'" ><img id="graph" src="'+g[1]+'" pxm="gal" title="fitness: '+g[3]+'" width="60" height="60" ></a>');
+        }else if ( id == 'sp' ){
+             g=getGraph('result_sp');
+            $('#graph_result').append('<a target="__blank" href="'+g[0]+'" pxm="gal" rel="time: '+g[2]+'" ><img id="graph" src="'+g[0]+'" title=" time: '+g[2]+'" width="60" height="60" > </a><a target="__blank" href="'+g[1]+'" rel="fitness: '+g[3]+'" ><img id="graph" src="'+g[1]+'" pxm="gal" title="fitness: '+g[3]+'" width="60" height="60" ></a>');
+        }else if ( id == 'sg' ){
+            g=getGraph('result_sg');
+            $('#graph_result').append('<a target="__blank" href="'+g[0]+'" pxm="gal" rel="time: '+g[2]+'" ><img id="graph" src="'+g[0]+'" title=" time: '+g[2]+'" width="60" height="60" > </a><a target="__blank" href="'+g[1]+'" rel="fitness: '+g[3]+'" ><img id="graph" src="'+g[1]+'" pxm="gal" title="fitness: '+g[3]+'" width="60" height="60" ></a>');
+        }
+  }
+
+    function selectAll(id){
+      $('#'+id+' :checkbox').each(function(){
+              $(this).attr('checked','checked');
+      });
+    }
+
+    function getLog(id){
+    var log='';
+    var idlog= rand();
+    log+='Log id '+idlog+'\n';
+    var i =1;
+       $('#'+id+' :checkbox:checked').each(function(){
+          log+='id='+i+'\n';
+					log+=$(this).val().replace(/(,)/g,'\n') ;
+				  log+='\n==========================\n';
+				  i++;
+         });
+
+	$.ajax({
+		type: 'POST',
+          dataType: "text",
+          url: '/execute/save_log/',
+ 		  data:'idlog='+idlog+'&log='+log,
+          beforeSend: bsavelog(),
+          success: ssavelog(idlog),
+          error: function(){
+            alert('Error');
+		  }
+		});
+    }
+
+  function rand(){
+	return Math.ceil(Math.random()*1000) ;
+  }
+  function bsavelog(){
+	$("#wait_log").show('slow');
+}
+  function ssavelog(id){
+	$("#wait_log").hide('slow');
+	$("#status_result").append('<a href="http://pygenetics.paridin.com/media/logs/log_id_'+id+'.txt" title="Descargar Log" target="__blank" > Descarga Log '+id+' </a>');
+  }
+
+  function getGraph(id){
+		var times = new Array();
+		var fitness= new Array();
+		var bTime= 0;
+		var bFitness= 0;
+		var tGraph="" ;
+		var fGraph="";
+        if ( id == 'result_mac' ){
+              $('#'+id+' input:checkbox:checked').each(function(){
+					r = get_results($(this).val()); // r[0] - Is String with time value , r[1] // Is String with fitness value
+					times.push(r[0]); // all times
+					fitness.push(r[1]); // all fitness
+					if(r[0]>bTime){
+						bTime = r[0];
+					}
+					if(r[1]>bFitness){
+						bFitness = r[1];
+					}
+           		});
+				tGraph=getURL(times,'Mutation+and+Crossover','Times','000000','3366CC');
+				fGraph=getURL(fitness,'Mutation+and+Crossover','Fitness','000000','3366CC');
+        }else if('result_sp'){
+			$('#'+id+' input:checkbox:checked').each(function(){
+					r = get_results($(this).val()); // r[0] - Is String with time value , r[1] // Is String with fitness value
+					times.push(r[0]); // all times
+					fitness.push(r[1]); // all fitness
+					if(r[0]>bTime){
+						bTime = r[0];
+					}
+					if(r[1]>bFitness){
+						bFitness = r[1];
+					}
+           		});
+				tGraph=getURL(times,'Size+of+population','Times','000000','3366CC');
+				fGraph=getURL(fitness,'Size+of+population','Fitness','000000','3366CC');
+
+
+       }else if('result_sg'){
+			$('#'+id+' input:checkbox:checked').each(function(){
+					r = get_results($(this).val()); // r[0] - Is String with time value , r[1] // Is String with fitness value
+					times.push(r[0]); // all times
+					fitness.push(r[1]); // all fitness
+					if(r[0]>bTime){
+						bTime = r[0];
+					}
+					if(r[1]>bFitness){
+						bFitness = r[1];
+					}
+           		});
+				tGraph=getURL(times,'Number+of+generations','Times','000000','3366CC');
+				fGraph=getURL(fitness,'Number+of+generations','Fitness','000000','3366CC');
+       }
+	return [tGraph,fGraph,bTime,bFitness]
+
+  }
+
+  function getURL(y,title,legendText,gColor,tColor){
+	var url = 'http://chart.apis.google.com/chart?';
+	var x;
+	var maxVal=0;
+	fontSize='20';
+	for (i=0; i<y.length;i++){
+		if (y[i]>maxVal){
+			maxVal = y[i];
+		}
+	}
+
+	axis='chxr=0,0,'+y.length+'|1,0,'+maxVal+'&chxt=x,y';
+	size='&chs=440x220';
+	xySize = '&chds=0,'+maxVal*2+',0,100';
+	cGraph='&chco='+gColor;
+	values= '&chd=t:-1|'+y.toString();
+	vlabel='&chdl='+legendText;
+	lPosition='&chdlp=l'; //left
+	grid='&chg=-1,-1';
+	title='&chtt='+title;
+	settingTitle='&chts='+tColor+','+fontSize;
+	url += axis+size+'&cht=lxy'+cGraph+xySize+values+vlabel+lPosition+'&chls=1&chma=5,5,5,25'+grid+settingTitle+title;
+
+	return url;
+
+  }
+
+  function get_results(value){
+	var results= new Array();
+	var fitness= 0;
+	var time= 0;
+	results=value.split(',');
+	for ( i=0 ; i< results.length ; i++){
+		if (/^(time=)(.*)$/.test(results[i]) ){
+			time = results[i].split('=').pop();
+		}
+		if (/^(best_time=)(.*)$/.test(results[i]) ){
+			fitness = results[i].split('=').pop();
+		}
+	}
+	return [time,fitness];
+  }
+
+
+  function beforeRun(){
+		if($('#mutation').val() !='' && $('#crossover').val() !='' && $('#size_population').val() !='fail' && $('#generation').val() !='' && $('tuning').val() !='fail' && $('#selected').text() != ''){
+			$('#run-progress-bar').show('slow');
+			return true;
+		}else{
+			$('#frmstatus').append("<p><strong>"+ ERROR_EMPTY +"</strong></p>");
+			$('#frmstatus').fadeOut(1500).fadeIn(1500).fadeOut(1100).fadeIn(1100).fadeOut(3000);
+			return false;
+		}
+  }
+  function successRun(){
+    $('#run-progress-bar').hide('slow');
+    $('#result').empty();
+    var id=0;
+    $.getJSON('/execute/list_results/',function(data){
+      $.each(data,function(key,value){
+      id++;
+      string = object2string(value);
+           if (string.search("mut_and_cross") != -1 ){
+                  $('#result_mac').append('<li><input type="checkbox" name="result" value="'+ string +'"><label id="result_job" style="cursor: pointer; font-size:16px;" pxm="'+string+'">{{ l_job }}'+id+'</label></li>');
+           }else if (string.search("size_of_population") != -1 ){
+                  $('#result_sp').append('<li><input type="checkbox" name="result" value="'+ string +'"><label id="result_job" style="cursor: pointer; font-size:16px;" pxm="'+string+'">{{ l_job }}'+id+'</label></li>');
+           }else if(string.search("size_of_generation") != -1 ){
+                 $('#result_sg').append('<li><input type="checkbox" name="result" value="'+ string +'"><label id="result_job" style="cursor: pointer; font-size:16px;" pxm="'+string+'">{{ l_job }}'+id+'</label></li>');
+           }
+      });
+       $('#list_results ul label[pxm]').each(function(){
+          $(this).qtip({
+            content : $(this).attr('pxm').replace(/(,)/g,'\n')  ,
+            poistion:{
+                  corner:{
+                          target: 'leftMiddle',
+                          tooltip: 'rightMiddle'
+                  }
+             },
+             style:{
+                  width: 250,
+                  padding: 7,
+                  margin: 5,
+                  height:170,
+                  background: '#656565',
+                  color: 'white',
+                  textAlign: 'left',
+                  border: {
+                     width: 1,
+                     radius: 5,
+                     color: '#333'
+                  },
+                  tip: true,
+                  name: 'dark'
+             }
+        });
+      });
+    });
+  }
+
+  function object2string(object){
+       var result="";
+       $.each(object,function(key, value){
+              if (value!='object'){
+                    result += key+'='+value+',' ;
+              }
+       });
+        return result;
+  }
+  /*
+  function beforeComment(){
+		if($('#name_user').val() !='' and $('#name_email').val() !='' and $('#site_web').val() !='' and $('#comment').val() !=''){
+			return true;
+		}else{
+			$('#commentstatus').append("<p><strong>"+ ERROR_EMPTY +"</strong></p>");
+			return false;
+		}
+  }
+
+  function successComment(){
+
+  }
+*/
+  function beforeSubmitHandler(){
+      var name=get_name($('#cnffile').val());
+      var ext=[];
+      ext = name.split('.');
+      if (ext.pop()=='cnf'){
+            $('#upload-progress-bar').show('slow');
+            return true;
+      }else{
+            alert(ERROR_NOT_CNF);
+            return false;
+      }
+  }
+
+  function get_cnf (id){
+  return $.ajax({
+                type: 'POST',
+                dataType: "html",
+                url: '/preview_cnf/',
+                data: 'id='+id,
+                async : false,
+                error: function(){
+                    alert('Error');
+                }
+          }).responseText;
+  }
+
+  function successHandler(){
+  items=[];
+  sheet=[];
+      $('#upload-progress-bar').hide('slow');
+      $.getJSON('/list_cnf/',function(data){
+        $.each(data, function(key, name){
+           items.push('<li><input type="radio" id="'+name+'" name="cnffiles" value="'+name+'" onclick="file_selected(\''+name+'\')" style="cursor: pointer" /> <label style="cursor: pointer; font-size:16px;" for="'+name+'" >'+name+'<img src="/media/images/preview.png" style="margin-left:5px;" title="'+name+'"  onclick="jQuery.fancybox(get_cnf(\''+name+'\'),{autoDimensions: false } )" /></label></li>');
+        });
+        // list 10 to 10
+        cnfs_list(10);
+        $("#pages").show('slow');
+        // GET NAME FILE UPLOAD
+        var name;
+        name=get_name($('#cnffile').val())
+        search_cnf(name);
+        file_selected(name);
+     });
+  	}
+
+    function cnfs_list(id){
+	    $('#dir_cnf ul').remove();
+	    $('#pages ul').remove();
+      $('#dir_cnf').append('<ul id="layer_'+sheet_number+'">'+items[0]+'</ul>');
+        for (i=1;i<items.length;i++){
+            if(i%10 == 0){
+            sheet_number++;
+                $('#dir_cnf').append('<ul id="layer_'+sheet_number+'" style="display:none">'+items[i]+'</ul>');
+            }else{
+                $('#layer_'+sheet_number).append(items[i]);
+            }
+        }
+        $('#pages').append('<ul id="page"></ul>');
+        for(i=0;i<=sheet_number;i++){
+            $('#page').append('<li onclick="sheets('+i+')" style="cursor:pointer">'+i+'</li>');
+        }
+    }
+
+    function sheets(index){
+        for(i=0;i<=sheet_number;i++){
+            if(index==i){
+             $('#layer_'+i).show('slow');
+            }else{
+             $('#layer_'+i).hide('fast');
+            }
+        }
+
+    }
+
+    function search_cnf(val){
+        $("input:radio").each(function(){
+            if(val==$(this).val()){
+                $(this).attr('checked','checked');
+                file_selected($(this).val());
+            }
+        });
+    }
+
+    function file_selected(val){
+        $('#selected').empty();
+        $('#selected').append(val);
+    }
+
+    function get_name(string){
+        var name=[];
+        var exp1= /[\/]/ ;
+        var exp2= /[\\]/ ;
+        if ( exp1.test(string) ){
+          name=string.split(exp1);
+        }else if ( exp2.test(string)){
+          name=string.split(exp2);
+        }else{
+          return string;
+        }
+        return name.pop();
+     }
+  function show(id){
+     $('#'+id).show('slow');
+     $('#more_'+id).hide('slow');
+     $('#less_'+id).show('slow');
+  }
+  function hide(id){
+     $('#'+id).hide('slow');
+     $('#less_'+id).hide('slow');
+     $('#more_'+id).show('slow');
+  }
+
+</script>
+<!--
+    <link rel="stylesheet" href="http://localhost/~paridin/fonts/pyGenetics/css/pyGenetics.css" type="text/css" media="screen" charset="utf-8" />
+-->
+    <link rel="stylesheet" href="/media/css/pyGenetics.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="/media/fancybox/jquery.fancybox-1.3.4.css" type="text/css" media="screen" charset="utf-8" />
+  </head>
+  <body>
+
+   {% load i18n %}
+    <section id="head" class="box_tab_down">
+          <header class="title">
+              <h1>{{ title }}</h1>
+            </header>
+        <nav id="language" class="language box_tab_down">
+            <a href="/es/">{{ es_mx }}</a> |
+            <a href="/en/">{{ en_usa }}</a>
+        </nav>
+    </section>
+
+<div id="content_global">
+                <section id="content" class="box_tab_left">
+                     <section id="load_file" class="row">
+                        <form action="./" name="form_upload" id="form_upload" class="row" method="POST" enctype="multipart/form-data">{% csrf_token %}
+                            <label id="upload" class="finger">{% trans upload_label %}</label> | <label id="listar" class="finger">{{ list_label }}</label>
+                            <input type="file" name="cnffile" id="cnffile" class="file input_box"   />
+                            <input id="up" class="input_box finger" type="submit" style="font-size:20px; padding:10px;" value="{% trans button_upload %}" />
+                        </form>
+                            <div><span id="upload-progress-bar" style="display: none;"><img src="/media/images/loader.gif" /></span></div>
+                      </section>
+
+                       <section id="run_code" class='row'>
+                          <form action="./" name="form_run" id="form_run" class="row" method="POST" enctype="multipart/form-data" >{% csrf_token %}
+                                <div id="dir_cnf" ></div>
+                                <div id="pages" style="display: none">
+                                    <label class="page_label">{{ page_label }}</label>
+                                </div>
+                                <br />
+                                <div id="file_selected">
+                                <label>{{ file_selected }}</label>
+                                <label id="selected"></label>
+                                </div>
+                                <br />
+                                <label for="mutation">{{ m_label }}</label>
+                                <input type="text" id="mutation" name="mutation" maxlength="3" size="3" class="input_box" /> %
+                                <div id="mstatus" class="error" style="display:none;"></div>
+
+                                <label for="crossover" style="padding-left:20px">{{ c_label }}</label>
+                                <input type="text" id="crossover" name="crossover" maxlength="3" size="3" class="input_box" /> %
+                                <div id="cstatus" class="error" style="display:none"></div>
+                                <br />
+                                <label for="size_population">{{ size_population_label }}</label>
+                                <select id="size_population" name="size_population" class="input_box">
+                                    <option value="half">{{ op_half }}</option>
+                                    <option value="normal" selected="true">{{ op_normal }}</option>
+                                    <option value="double">{{ op_double }}</option>
+                                </select>
+                                <br />
+                                <label for="generation">{{ g_label }}</label>
+                                <input type="text" id="generation" name="generation" maxlength="5" size="6" class="input_box" />
+                                <div id="gstatus" class="error" style="display:none" ></div>
+                                <br />
+                                <label for="tuning">{{ t_label }}</label>
+                                <select id="tuning" name='tuning' class="input_box">
+                                    <option value="fail">{{ op_select }}</option>
+                                    <option value="mut_and_cross">{{ op_mut_cross }}</option>
+                                    <option value="size_of_population">{{ op_size_population }}</option>
+                                    <option value="size_of_generation">{{ op_size_generation }}</option>
+                                </select>
+                                <br />
+								<label for="number_test">Número de pruebas:</label><input type="text" size="3" maxlenght="4" id="number_test" name="number_test" class="input_box " />
+								<br />
+						          	<div id="frmstatus" class="error" style="display:none" ></div>
+								<br />
+                                <input type="button" id="sumbit_run" value="{{ j_label }}" class="input_box finger" style="font-size:20px; padding:10px;" />
+                            </form>
+                            <div><span id="run-progress-bar" style="display: none;"><img src="/media/images/loader.gif" /></span><label id='tests'></label></div>
+                    </section>
+                    <div id="give_comment" style="text-align:right;font-size:12px"> <label class="finger">{{ leave_a_comment }}</label> </div>
+                    <section id="comments" class="row" style="display:none; width:450px;padding-top:20px;">
+                            <form action="./" name="form_comment" id="form_comment" class="row" method="POST" enctype="multipart/form-data">{% csrf_token %}
+                            <label for="name_user" style="float:left;margin-top:7px;">{{ c_name }} </label>
+                            <input type="text" name="name_user" style="float:right;" class="input_box"><br />
+                            <label for="name_email" style="float:left;margin-top:7px;">{{ c_email }} </label>
+                            <input type="text" name="email_user" style="float:right;" class="input_box"><br />
+                            <label for="site_web" style="float:left;margin-top:7px;">{{ c_web }} </label>
+                            <input type="text" name="site_web" style="float:right;" class="input_box"><br />
+                            <textarea rows="8" cols="43" class="input_box" name="comment" id="comment" ></textarea>
+                            <br />
+                            <input type="submit" value="{{ c_press }}" class="input_box finger" style="font-size:20px; padding:10px;" />
+                            </form>
+                    </section>
+                </section>
+                    <aside id="status" class="box_tab_right">
+                        <section id="messages">
+                            <heaader><h4>{{ sub_title_status }}</h4></header>
+                            <p>{{ desc_content }}</p>
+                            <p id="r_message"><p>
+                        </section>
+
+                    </aside>
+ </div>
+<section id="list_results" class="box">
+<header id="r" class="finger">Resultados</header>
+                        <aside id="mac" style="display:none">
+                         <header>mac
+                         <div><label id='more_result_mac' onclick="show('result_mac')" class="finger" >+</label> <label id='less_result_mac' onclick="hide('result_mac')" style="display:none" class="finger" >-</label> </div>
+                         </header>
+                              <ul id="result_mac" style="display:none">
+                              <p>
+                                    <a href="#" onclick="selectAll('result_mac')" >Seleccionar todos</a>
+                                    <a href="#" onclick="getLog('result_mac')" >Log</a>
+                                    <a href="#" onclick="renderGraph('mac')" >Gráfica</a>
+                              </p>
+                              </ul>
+                         </aside>
+
+                         <aside id="sp" style="display:none">
+                         <header>sp
+                         <div><label id='more_result_sp' onclick="show('result_sp')" class="finger" >+</label> <label id='less_result_sp' onclick="hide('result_sp')" style="display:none" class="finger" >-</label> </div>
+                         </header>
+                              <ul id="result_sp" style="display:none">
+                                 <p>
+                                     <a href="#" onclick="selectAll('result_sp')" >Seleccionar todos</a>
+                                     <a href="#" onclick="getLog('result_sp')" >Log</a>
+                                     <a href="#" onclick="renderGraph('sp')" >Gráfica</a>
+                                  </p>
+                              </ul>
+                         </aside>
+
+                         <aside id="sg" style="display:none">
+                         <header>sg
+                         <div><label id='more_result_sg' onclick="show('result_sg')" class="finger">+</label> <label id='less_result_sg' onclick="hide('result_sg')" style="display:none" class="finger" >-</label> </div>
+                         </header>
+                              <ul id="result_sg" style="display:none">
+                                  <p>
+                                     <a href="#" onclick="selectAll('result_sg')" >Seleccionar todos</a>
+                                     <a href="#" onclick="getLog('result_sg')" >Log</a>
+                                     <a href="#" onclick="renderGraph('sg')" >Gráfica</a>
+                                  </p>
+                              </ul>
+                          </aside>
+
+						<section id="status_result">
+						  <div id="graph_result"></div>
+							<div><span id="wait_log" style="display: none;"><img src="/media/images/loader.gif" /></span></div>
+						</section>
+</section>
+
+
+
+
+
+   <footer id="foot">
+       <div>
+        {{ build_by }} <a href="http://paridin.com" alt="Paridin Company">{{ build_name }}</a>.
+        </div>
+    </footer>
+    </div>
+  </body>
+</html>
+
