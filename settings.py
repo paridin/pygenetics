@@ -82,11 +82,6 @@ TEMPLATES = [
     }
 }]
 
-#    'django.template.loaders.filesystem.Loader',
-#    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-
-
 MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -102,12 +97,6 @@ FILE_UPLOAD_HANDLERS = (
 
 ROOT_URLCONF = 'urls'
 
-# TEMPLATE_DIRS = (
-#     path.join(root, 'templates'),
-#     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-#     # Always use forward slashes, even on Windows.
-#     # Don't forget to use absolute paths, not relative paths.
-# )
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -122,17 +111,6 @@ INSTALLED_APPS = (
     'execute',
     'comment',
 )
-# TEMPLATE_CONTEXT_PROCESSORS = (
-#     'django.contrib.auth.context_processors.auth',
-#     'django.core.context_processors.debug',
-#     'django.core.context_processors.i18n',
-#     'django.core.context_processors.media',
-#     #'django.core.context_processors.static',
-#     'django.contrib.messages.context_processors.messages',
-# )
-
-
-# TEMPLATE_DEBUG = True
 
 # cuando esta en modo debug se puede utilizar la debugbar
 ACTIVAR_DEBUG_BAR=False # no siempre en debug se quiere la toolbar
@@ -177,4 +155,3 @@ CACHES = {
 
 #LOGGING DEBUG
 LOG_FILENAME = path.join(root, 'tmp', 'log')
-
