@@ -16,7 +16,7 @@ root = path.abspath(path.dirname(__file__))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'pygenetics',                      # Or path to database file if using sqlite3.
+        'NAME': 'pygenetics.sqlite3',                      # Or path to database file if using sqlite3.
     }
 }
 
