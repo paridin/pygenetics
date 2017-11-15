@@ -1,4 +1,5 @@
 # Django settings for web project.
+from django.conf import global_settings
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -82,7 +83,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'pyGenetics.urls'
 
 TEMPLATE_DIRS = (
-    '/home/paridin/public_html/pyGenetics/templates'
+    '/home/paridin/public_html/pyGenetics/templates',
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -141,11 +142,9 @@ if DEBUG and ACTIVAR_DEBUG_BAR:
     }
 
 
-FILE_UPLOAD_PERMISSIONS = 0644
+FILE_UPLOAD_PERMISSIONS = 0o644
 
-from django.conf import global_settings
-
-FILE_UPLOAD_HANDLERS = ('uploadprogresscachedhandler.UploadProgressCachedHandler', ) \
+FILE_UPLOAD_HANDLERS = ['uploadprogresscachedhandler.UploadProgressCachedHandler'] \
 + global_settings.FILE_UPLOAD_HANDLERS
 
 CACHES = {
