@@ -1,11 +1,12 @@
 import os
 # -*- coding: utf8 -*-
-from django.core.context_processors import csrf
+#from django.core.context_processors import csrf
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.middleware.csrf import get_token
 from execute.models import py_results,py_averages
-from django.utils import simplejson
+#from django.utils import simplejson #deprecated
+import json
 from execute.pygenetics import *
 
 def run(request):
@@ -76,7 +77,7 @@ def run(request):
     result['id']=1
     result['time']=pi.e_time-pi.i_time
     result['fitness']=pi.fitness
-    return HttpResponse(simplejson.dumps(result))
+    return HttpResponse(json.dumps(result))
 """
 def list_results(request):
     result={}
@@ -93,7 +94,7 @@ def list_results(request):
         result[id]['num_generation'] = i.num_gen
         result[id]['name_file'] = i.name_file
         id=id+1
-    return HttpResponse(simplejson.dumps(result))
+    return HttpResponse(json.dumps(result))
 """
 def list_results(request):
     from django.db import connections
@@ -110,7 +111,7 @@ def list_results(request):
         result['id']['num_gen']=i.num_gen
         result['id']['name_file']=i.name_file
         id=id+1
-    return HttpResponse(simplejson.dumps(result))
+    return HttpResponse(json.dumps(result))
 
 def save_log(request):
 	path='/home/paridin/public_html/pyGenetics/media/logs/log_id_%s.txt' % request.POST['idlog']

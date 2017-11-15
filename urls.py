@@ -1,24 +1,26 @@
-from django.conf.urls.defaults import *
-
+from django.conf.urls import url, include
+from django.conf import settings
+from django.views.static import serve
+from execute import views as eview
+import views
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
-     (r'^$','pyGenetics.views.index'),
-     (r'^es/$','pyGenetics.views.index'),
-     (r'^en/$','pyGenetics.views.index_us'),
-     (r'^upload/?.*$','pyGenetics.views.upload'),
-     (r'^upload_progress/?.*$','pyGenetics.views.upload_progress'),
-     (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': 'pyGenetics.settings.MEDIA_ROOT' , 'show_indexes':True}),
-     (r'^list_cnf/$','pyGenetics.views.list_cnf'),
-     (r'^test/$','pyGenetics.views.test'),
-     (r'^execute/run/$','pyGenetics.execute.views.run'),
-     (r'^execute/list_results/$','pyGenetics.execute.views.list_results'),
-     (r'^preview_cnf/$','pyGenetics.views.get_cnf'),
-     (r'^execute/save_log/$','pyGenetics.execute.views.save_log'),
-     (r'^execute/save_averages/$','pyGenetics.execute.views.save_averages'),
-    # (r'^upload/','pyGenetics.upload.upload')
+urlpatterns = (
+    url(r'^$', views.index),
+    url(r'^es/$', views.index),
+    url(r'^en/$', views.index_us),
+    url(r'^upload/?.*$', views.upload),
+    url(r'^list_cnf/$', views.list_cnf),
+    url(r'^upload_progress/?.*$', views.upload_progress),
+    url(r'^test/$', views.test),
+    url(r'^execute/run/$', eview.run),
+    url(r'^execute/list_results/$', eview.list_results),
+    url(r'^preview_cnf/$', views.get_cnf),
+    url(r'^execute/save_log/$', eview.save_log),
+    url(r'^execute/save_averages/$', eview.save_averages),
+    # (r'^upload/','upload.upload')
     # Example:
     # (r'^web/', include('web.foo.urls')),
 
@@ -26,6 +28,13 @@ urlpatterns = patterns('',
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-     (r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls,)),
 )
 
+if settings.DEBUG:
+    urlpatterns += (
+        url(r'^media/(?P<path>.*)$', serve, {
+            'document_root': settings.MEDIA_ROOT,
+            'show_indexes': True
+        }),
+    )

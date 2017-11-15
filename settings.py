@@ -13,12 +13,8 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'paridin_pygenetics',                      # Or path to database file if using sqlite3.
-        'USER': 'paridin_paridin',                      # Not used with sqlite3.
-        'PASSWORD': 'pygenetics1234',                  # Not used with sqlite3.
-        'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '3306',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'pygenetics',                      # Or path to database file if using sqlite3.
     }
 }
 
@@ -69,18 +65,17 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.csrf.CsrfResponseMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.core.files.uploadhandler.MemoryFileUploadHandler',
     'django.core.files.uploadhandler.TemporaryFileUploadHandler',
 )
 
-ROOT_URLCONF = 'pyGenetics.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     '/home/paridin/public_html/pyGenetics/templates',
@@ -99,8 +94,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     #'django.contrib.admindocs',
-    'pyGenetics.execute',
-    'pyGenetics.comment',
+    'execute',
+    'comment',
 )
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -117,8 +112,8 @@ TEMPLATE_DEBUG = True
 # cuando esta en modo debug se puede utilizar la debugbar
 ACTIVAR_DEBUG_BAR=False # no siempre en debug se quiere la toolbar
 if DEBUG and ACTIVAR_DEBUG_BAR:
-    MIDDLEWARE_CLASSES+=('pyGenetics.debug_toolbar.middleware.DebugToolbarMiddleware',)
-    INSTALLED_APPS+=('pyGenetics.debug_toolbar',)
+    MIDDLEWARE +=('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    INSTALLED_APPS +=('debug_toolbar',)
     INTERNAL_IPS = ('174.122.135.242',)
     DEBUG_TOOLBAR_PANELS = (
         'debug_toolbar.panels.version.VersionDebugPanel',

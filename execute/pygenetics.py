@@ -23,17 +23,17 @@ class SAT:
     #def __init__(self, path):
     def error(self,type):
         if type==100:
-            print 'Expect cnf value'
+            print('Expect cnf value')
         elif type==110:
-            print 'Expect int'
+            print('Expect int')
         elif type==120:
-            print 'only one p declaration'
+            print('only one p declaration')
         elif type==130:
-            print 'Not expect more arguments'
+            print('Not expect more arguments')
         elif type==140:
-            print 'The character is not permited'
+            print('The character is not allowed')
         else:
-            print 'Error Not Found'
+            print('Error Not Found')
 
     def parser(self,path):
         number  = 0
@@ -70,7 +70,7 @@ class SAT:
                        id=id+1
                        tmp=[]
             else:
-                print 'Error file line number > '+str(number) + ': ' + line
+                print('Error file line number > {}: {}'.format(str(number), line))
                 exit(-1)
             number=number+1
         file.close()

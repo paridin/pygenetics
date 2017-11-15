@@ -19,20 +19,20 @@ class py_results(models.Model):
     def get_user(self,id__):
         return User.objects.get(id=id__)
 
-	def last_file(self):
-		return str(py_results.objects.latest('name_file'))
+    def last_file(self):
+        return str(py_results.objects.latest('name_file'))
 
     class Admin:
         pass
 
 class py_averages(models.Model):
-	name_file = models.CharField(max_length=40,blank=False)
-	time_average = models.DecimalField(max_digits=15,decimal_places=13)
-	fitness_average = models.DecimalField(max_digits=15,decimal_places=10)
+    name_file = models.CharField(max_length=40,blank=False)
+    time_average = models.DecimalField(max_digits=15,decimal_places=13)
+    fitness_average = models.DecimalField(max_digits=15,decimal_places=10)
 
-	def __str__(self):
-		return str(self.name_file)+":"+str(self.time_average)+":"+str(self.fitness_average)
+    def __str__(self):
+        return str(self.name_file)+":"+str(self.time_average)+":"+str(self.fitness_average)
 
-	class Admin:
-		pass
+    class Admin:
+        pass
 

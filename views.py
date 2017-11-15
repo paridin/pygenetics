@@ -1,6 +1,6 @@
 import os.path
 # -*- coding: utf8 -*-
-from django.core.context_processors import csrf
+# from django.core.context_processors import csrf
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.middleware.csrf import get_token
