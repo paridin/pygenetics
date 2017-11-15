@@ -1,15 +1,18 @@
 # Django settings for web project.
 from django.conf import global_settings
+from os import path
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-     ('Roberto Estrada', 'restrada@paridin.com'),
+    ('Roberto Estrada', 'restrada@paridin.com'),
 )
 
 MANAGERS = ADMINS
 
+# since I need to make it more stable with the paths I just get the actual path
+root = path.abspath(path.dirname(__file__))
 
 DATABASES = {
     'default': {
@@ -43,12 +46,12 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/home/paridin/public_html/pyGenetics/media/'
+MEDIA_ROOT = path.join(root, 'media/')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = 'http://pygenetics.paridin.com/media/'
+MEDIA_URL = '/media/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -59,30 +62,52 @@ ADMIN_MEDIA_PREFIX = '/media/'
 SECRET_KEY = '&w6ut^sn#m^4re*56gksrt-&6u%p))(vmdo8)2wl599c00du$-'
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
+TEMPLATES = [
+    {
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [
+        path.join(root, 'templates')
+    ],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': [
+            'django.contrib.auth.context_processors.auth',
+            'django.template.context_processors.debug',
+            'django.template.context_processors.i18n',
+            'django.template.context_processors.media',
+            'django.template.context_processors.static',
+            'django.template.context_processors.tz',
+            'django.contrib.messages.context_processors.messages',
+        ]
+    }
+}]
+
+#    'django.template.loaders.filesystem.Loader',
+#    'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.Loader',
-)
+
 
 MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware'
+)
+
+FILE_UPLOAD_HANDLERS = (
     'django.core.files.uploadhandler.MemoryFileUploadHandler',
-    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler'
 )
 
 ROOT_URLCONF = 'urls'
 
-TEMPLATE_DIRS = (
-    '/home/paridin/public_html/pyGenetics/templates',
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
+# TEMPLATE_DIRS = (
+#     path.join(root, 'templates'),
+#     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+#     # Always use forward slashes, even on Windows.
+#     # Don't forget to use absolute paths, not relative paths.
+# )
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -97,17 +122,17 @@ INSTALLED_APPS = (
     'execute',
     'comment',
 )
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    #'django.core.context_processors.static',
-    'django.contrib.messages.context_processors.messages',
-)
+# TEMPLATE_CONTEXT_PROCESSORS = (
+#     'django.contrib.auth.context_processors.auth',
+#     'django.core.context_processors.debug',
+#     'django.core.context_processors.i18n',
+#     'django.core.context_processors.media',
+#     #'django.core.context_processors.static',
+#     'django.contrib.messages.context_processors.messages',
+# )
 
 
-TEMPLATE_DEBUG = True
+# TEMPLATE_DEBUG = True
 
 # cuando esta en modo debug se puede utilizar la debugbar
 ACTIVAR_DEBUG_BAR=False # no siempre en debug se quiere la toolbar
@@ -126,6 +151,7 @@ if DEBUG and ACTIVAR_DEBUG_BAR:
         'debug_toolbar.panels.signals.SignalDebugPanel',
         'debug_toolbar.panels.logger.LoggingPanel',
     )
+
     def custom_show_toolbar(request):
         return True # Always show toolbar, for example purposes only.
 
@@ -150,5 +176,5 @@ CACHES = {
 }
 
 #LOGGING DEBUG
-LOG_FILENAME = '/home/paridin/tmp/log/'
+LOG_FILENAME = path.join(root, 'tmp', 'log')
 

@@ -8,10 +8,12 @@ from execute.models import py_results,py_averages
 #from django.utils import simplejson #deprecated
 import json
 from execute.pygenetics import *
+from settings import root
+from os import path
 
 def run(request):
     tuning=request.POST['tuning']
-    path='/home/paridin/public_html/pyGenetics/media/cnfs/%s' % request.POST['cnffiles']
+    _path=path.join(root, 'media/cnfs/{}'.format(request.POST['cnffiles']))
     #rang is a variable for percent of mutation and crossover
     rang=[]
     GENERATION=int(request.POST['generation'])
@@ -30,7 +32,7 @@ def run(request):
     #READ FILE
     #ob->function objetive, ob[0] is variables, ob[1] is clauses
     #sol-> problem sat,ob[x] is a clause problem, x is a index of row.
-    [ob, sol] = sat.parser(path)
+    [ob, sol] = sat.parser(_path)
     if type_pop == 'half':
         size_row = ob[0]/2
     elif type_pop == 'double':
@@ -114,8 +116,8 @@ def list_results(request):
     return HttpResponse(json.dumps(result))
 
 def save_log(request):
-	path='/home/paridin/public_html/pyGenetics/media/logs/log_id_%s.txt' % request.POST['idlog']
-	f = open(path,"w")
+	_path=path.join(root, 'media/logs/log_id_{}.txt'.format(request.POST['idlog']))
+	f = open(_path, "w")
 	for data in request.POST['log']:
 		f.write(data)
 	f.close()

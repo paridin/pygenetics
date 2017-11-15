@@ -50,7 +50,7 @@ def index(request):
     #footer
     build_by='Desarrollado por'
     build_name='Paridin Company'
-    return render_to_response('index.html',locals())
+    return render_to_response('index.html', locals())
 
 def index_us(request):
     #header
