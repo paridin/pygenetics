@@ -3,7 +3,6 @@ from django.conf import global_settings
 from os import path
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('Roberto Estrada', 'restrada@paridin.com'),
